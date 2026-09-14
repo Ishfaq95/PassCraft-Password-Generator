@@ -129,31 +129,9 @@ export function PinSetupSheet({
       setError(undefined);
 
       if (step === 'create') {
-        if (draftPin.length === 0) {
-          setDraftPin(pin);
-          setStep('change-confirm');
-          setIsSubmitting(false);
-          return;
-        }
-
-        if (pin !== draftPin) {
-          setError('PINs do not match. Try again.');
-          setDraftPin('');
-          setStep('create');
-          setIsSubmitting(false);
-          return;
-        }
-
-        const result = await onCreatePin(pin);
-        if (!result.success) {
-          setError(result.message);
-          setDraftPin('');
-          setStep('create');
-          setIsSubmitting(false);
-          return;
-        }
-
-        resetAndClose();
+        setDraftPin(pin);
+        setStep('change-confirm');
+        setIsSubmitting(false);
         return;
       }
 
@@ -175,8 +153,22 @@ export function PinSetupSheet({
         if (pin !== draftPin) {
           setError('PINs do not match. Try again.');
           setDraftPin('');
-          setStep('change-new');
+          setStep(mode === 'create' ? 'create' : 'change-new');
           setIsSubmitting(false);
+          return;
+        }
+
+        if (mode === 'create') {
+          const result = await onCreatePin(pin);
+          if (!result.success) {
+            setError(result.message);
+            setDraftPin('');
+            setStep('create');
+            setIsSubmitting(false);
+            return;
+          }
+
+          resetAndClose();
           return;
         }
 
@@ -208,6 +200,7 @@ export function PinSetupSheet({
     [
       currentPin,
       draftPin,
+      mode,
       onChangePin,
       onCreatePin,
       onDisableWithPin,
@@ -233,6 +226,7 @@ export function PinSetupSheet({
     >
       <View style={styles.content}>
         <PinEntry
+          key={step}
           title={stepConfig.title}
           subtitle={stepConfig.subtitle}
           error={error}
